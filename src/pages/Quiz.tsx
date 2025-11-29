@@ -106,11 +106,8 @@ const Quiz = () => {
         {currentQuestion && (
           <div className="space-y-6">
             <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground mb-2">What is the translation of:</p>
+              <p className="text-sm text-muted-foreground mb-2">Apa terjemahan dari:</p>
               <h2 className="text-3xl font-bold text-foreground">{currentQuestion.word}</h2>
-              {currentQuestion.pronunciation && (
-                <p className="text-muted-foreground italic mt-1">/{currentQuestion.pronunciation}/</p>
-              )}
             </div>
 
             <div className="space-y-3">
