@@ -86,6 +86,7 @@ const Flashcards = () => {
         {currentWord && (
           <Flashcard
             word={currentWord}
+            allWords={vocabulary}
             onCorrect={() => handleNext(true)}
             onIncorrect={() => handleNext(false)}
           />

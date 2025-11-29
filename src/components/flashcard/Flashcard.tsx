@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Database } from '@/integrations/supabase/types';
@@ -8,13 +8,29 @@ type Vocabulary = Database['public']['Tables']['vocabulary']['Row'];
 
 interface FlashcardProps {
   word: Vocabulary;
+  allWords: Vocabulary[];
   onCorrect?: () => void;
   onIncorrect?: () => void;
 }
 
-export function Flashcard({ word, onCorrect, onIncorrect }: FlashcardProps) {
+export function Flashcard({ word, allWords, onCorrect, onIncorrect }: FlashcardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showActions, setShowActions] = useState(false);
+
+  // Generate random translation - 50% chance correct, 50% chance wrong
+  const { displayedTranslation, isCorrectAnswer } = useMemo(() => {
+    const showCorrect = Math.random() > 0.5;
+    if (showCorrect) {
+      return { displayedTranslation: word.translation, isCorrectAnswer: true };
+    } else {
+      const otherWords = allWords.filter(w => w.id !== word.id);
+      if (otherWords.length === 0) {
+        return { displayedTranslation: word.translation, isCorrectAnswer: true };
+      }
+      const randomWord = otherWords[Math.floor(Math.random() * otherWords.length)];
+      return { displayedTranslation: randomWord.translation, isCorrectAnswer: false };
+    }
+  }, [word.id, allWords]);
 
   const categoryInfo = categoryConfig[word.category];
 
@@ -27,8 +43,11 @@ export function Flashcard({ word, onCorrect, onIncorrect }: FlashcardProps) {
     }
   };
 
-  const handleAction = (correct: boolean) => {
-    if (correct) {
+  // User clicks ✓ (saying "this translation is correct")
+  // User clicks ✗ (saying "this translation is wrong")
+  const handleAction = (userSaysCorrect: boolean) => {
+    const userIsRight = userSaysCorrect === isCorrectAnswer;
+    if (userIsRight) {
       onCorrect?.();
     } else {
       onIncorrect?.();
@@ -76,13 +95,11 @@ export function Flashcard({ word, onCorrect, onIncorrect }: FlashcardProps) {
               "flex flex-col items-center justify-center text-center shadow-lg"
             )}
           >
-            <h2 className="text-3xl font-bold mb-2">{word.translation}</h2>
-            {word.example_sentence && (
-              <div className="mt-4 px-4">
-                <p className="text-sm opacity-90 mb-1">{word.example_sentence}</p>
-                <p className="text-sm opacity-75 italic">{word.example_translation}</p>
-              </div>
-            )}
+            <p className="text-sm opacity-75 mb-2">Apakah ini terjemahan yang benar?</p>
+            <h2 className="text-3xl font-bold mb-2">{displayedTranslation}</h2>
+            <p className="text-sm opacity-60 mt-4">
+              Tekan ✓ jika benar, ✗ jika salah
+            </p>
           </div>
         </div>
       </div>
