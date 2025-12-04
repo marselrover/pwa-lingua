@@ -113,6 +113,29 @@ export function useProgress() {
     };
   };
 
+  const saveQuizResult = async (correctAnswers: number, totalQuestions: number, xpEarned: number, category?: string) => {
+    if (!user) return { error: 'Not authenticated' };
+
+    try {
+      const { data, error: insertError } = await supabase
+        .from('quiz_results')
+        .insert({
+          user_id: user.id,
+          correct_answers: correctAnswers,
+          total_questions: totalQuestions,
+          xp_earned: xpEarned,
+          category: category as any || null,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      return { data, error: null };
+    } catch (err: any) {
+      return { data: null, error: err.message };
+    }
+  };
+
   return {
     progress,
     loading,
@@ -121,5 +144,6 @@ export function useProgress() {
     updateProgress,
     getMasteryLevel,
     getOverallProgress,
+    saveQuizResult,
   };
 }
