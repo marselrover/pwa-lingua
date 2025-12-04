@@ -18,7 +18,7 @@ const Quiz = () => {
   const [completed, setCompleted] = useState(false);
 
   const { vocabulary, loading, refetch } = useRandomVocabulary(undefined, 10);
-  const { updateProgress } = useProgress();
+  const { updateProgress, saveQuizResult } = useProgress();
   const { addXP, updateStreak } = useProfile();
 
   const currentQuestion = vocabulary[currentIndex];
@@ -49,12 +49,14 @@ const Quiz = () => {
     await updateProgress(currentQuestion.id, isCorrect);
     setShowResult(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       if (currentIndex < vocabulary.length - 1) {
         setCurrentIndex((i) => i + 1);
         setSelectedAnswer(null);
         setShowResult(false);
       } else {
+        const finalCorrect = isCorrect ? correct + 1 : correct;
+        await saveQuizResult(finalCorrect, vocabulary.length, finalCorrect * 15);
         updateStreak();
         setCompleted(true);
       }
